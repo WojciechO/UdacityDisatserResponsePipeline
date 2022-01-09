@@ -32,6 +32,8 @@ def clean_data(df):
         categories[column] = categories[column].astype(str).str[-1]
     # convert column from string to numeric
         categories[column] = pd.to_numeric(categories[column])
+    # in some cases the columns had value '2' instead of just 0/1. Replacing those occurances with 1 
+        categories[column] = categories[column].apply(lambda x: 1 if x == 2 else x)
     
     #dropping the original categories column and joining the new wide version
     df = df.drop('categories', axis = 1)
@@ -45,7 +47,7 @@ def clean_data(df):
 def save_data(df, database_filename):
     ''' Function saving the clean dataset to a specified sqlite database'''
     engine = create_engine('sqlite:///{}'.format(database_filename))
-    df.to_sql('messages', engine, index=False) 
+    df.to_sql('messages', engine, index=False, if_exists= 'replace')
 
 
 def main():
