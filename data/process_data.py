@@ -49,7 +49,6 @@ def save_data(df, database_filename):
     engine = create_engine('sqlite:///{}'.format(database_filename))
     print(df.shape)
     df.to_sql('messages', engine, index=False, if_exists= 'replace')
-    engine.commit()
 
 
 def main():
