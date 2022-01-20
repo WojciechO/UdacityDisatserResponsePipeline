@@ -5,10 +5,10 @@ This project is part of Udacity Data Science Nanodegree program.
 It includes following steps:
 * a data pipeline, reading in data, cleaning it and saving to the SQLite database
 * ML pipeline: running NLP transformations, training  XGBoost multi-output classifier and saving it as pickle
-** GridSearch cross validation was performed off line to tune the hyperparamters
+    * GridSearch cross validation was performed off line to tune the hyperparamters
 * A flask app:
-** displaying two visualisations made with plotly
-** allowing for user message to be classified
+    * displaying two visualisations made with plotly
+    * allowing for user message to be classified
 
 ### Prerequisites
 Following libraries are not part of standard anaconda installation and need to be installed:
