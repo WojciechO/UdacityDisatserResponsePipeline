@@ -1,36 +1,30 @@
 import json
 import plotly
 import pandas as pd
-
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import word_tokenize
+import numpy as np
 
 from flask import Flask
 from flask import render_template, request, jsonify
 from plotly.graph_objs import Bar
-from sklearn.externals import joblib
+import joblib
 from sqlalchemy import create_engine
+
+from utils import prepare_boxplot, prepare_table, tokenize
 
 
 app = Flask(__name__)
 
-def tokenize(text):
-    tokens = word_tokenize(text)
-    lemmatizer = WordNetLemmatizer()
 
-    clean_tokens = []
-    for tok in tokens:
-        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
-        clean_tokens.append(clean_tok)
-
-    return clean_tokens
 
 # load data
-engine = create_engine('sqlite:///../data/disasterPipeline.db')
+database_filepath = 'data/disasterPipeline.db'
+url = 'sqlite:///' + database_filepath
+engine = create_engine(url)
 df = pd.read_sql_table('messages', engine)
 
 # load model
-model = joblib.load("../models/classifier.pkl")
+model = joblib.load("models/classifier.pkl")
+
 
 
 # index webpage displays cool visuals and receives user input text for model
@@ -39,25 +33,34 @@ model = joblib.load("../models/classifier.pkl")
 def index():
     
     # extract data needed for visuals
-    # TODO: Below is an example - modify to extract data for your own visuals
-    genre_counts = df.groupby('genre').count()['message']
-    genre_names = list(genre_counts.index)
-    
+    genre_column_names = ['news', 'direct', 'social']
+
+    #creating plotly table object
+    table = prepare_table(df, genre_column_names)
+
+    #creating list of boxplots objects
+    df_boxplot = df.copy()
+    df_boxplot['len_message'] = df_boxplot['message'].str.len()
+    boxplots_list = prepare_boxplot(df_boxplot, genre_column_names, 'len_message')
+
+
+
     # create visuals
-    # TODO: Below is an example - modify to create your own visuals
     graphs = [
         {
-            'data': [
-                Bar(
-                    x=genre_names,
-                    y=genre_counts
-                )
-            ],
+            'data': [table],
 
             'layout': {
-                'title': 'Distribution of Message Genres',
+                'title': 'Category occurances in message genres',
+            }
+        },
+         {
+            'data': boxplots_list,
+
+            'layout': {
+                'title': 'Distribution of Message Length',
                 'yaxis': {
-                    'title': "Count"
+                    'title': "Length"
                 },
                 'xaxis': {
                     'title': "Genre"
@@ -80,8 +83,14 @@ def go():
     # save user input in query
     query = request.args.get('query', '') 
 
+    #preparing the input array. 'Direct' is hardcoded as the deafult genre value
+    model_input_array = np.array([query, 'direct']).reshape(1, -1)
+
+    #input to the model has to be pandas DF, as ColumnTransformer is applied based on column names
+    model_input = pd.DataFrame(model_input_array, columns = ['message', 'genre'])
+
     # use model to predict classification for query
-    classification_labels = model.predict([query])[0]
+    classification_labels = model.predict(model_input)[0]
     classification_results = dict(zip(df.columns[4:], classification_labels))
 
     # This will render the go.html Please see that file. 

@@ -47,7 +47,9 @@ def clean_data(df):
 def save_data(df, database_filename):
     ''' Function saving the clean dataset to a specified sqlite database'''
     engine = create_engine('sqlite:///{}'.format(database_filename))
+    print(df.shape)
     df.to_sql('messages', engine, index=False, if_exists= 'replace')
+    engine.commit()
 
 
 def main():
@@ -73,7 +75,7 @@ def main():
               'well as the filepath of the database to save the cleaned data '\
               'to as the third argument. \n\nExample: python process_data.py '\
               'disaster_messages.csv disaster_categories.csv '\
-              'DisasterResponse.db')
+              'disasterPipeline.db')
 
 
 if __name__ == '__main__':

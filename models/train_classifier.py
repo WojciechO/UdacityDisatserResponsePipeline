@@ -53,7 +53,8 @@ def build_model():
     
     #defining pipeline for text column transformation:
     text_transformer = Pipeline(
-        steps =[('vectoriser', CountVectorizer(tokenizer=tokenize)),
+        steps =[('vectoriser', CountVectorizer(tokenizer=tokenize,
+                                               ngram_range = (1,2))),
             ('tfidf', TfidfTransformer())
            ]
         )
@@ -74,7 +75,8 @@ def build_model():
                 steps=[
                     ("preprocessor", preprocessor),
                     ('multiclf', MultiOutputClassifier(XGBClassifier(use_label_encoder=False,
-                                                                     eval_metric = 'logloss')))
+                                                                     eval_metric = 'logloss',
+                                                                     learning_rate = 0.2)))
                   ]
             )
     
